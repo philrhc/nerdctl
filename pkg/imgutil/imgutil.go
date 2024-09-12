@@ -252,6 +252,7 @@ func PullImage(ctx context.Context, client *containerd.Client, resolver remotes.
 		Snapshotter: options.GOptions.Snapshotter,
 		Remote:      snOpt.isRemote(),
 	}
+	fmt.Println(*res)
 	return res, nil
 
 }

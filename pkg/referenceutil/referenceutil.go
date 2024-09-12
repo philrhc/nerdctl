@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	distributionref "github.com/distribution/reference"
+	"github.com/go-bittorrent/magneturi"
 	"github.com/ipfs/go-cid"
 )
 
@@ -52,6 +53,9 @@ func ParseAny(rawRef string) (Reference, error) {
 	if scheme, ref, err := ParseIPFSRefWithScheme(rawRef); err == nil {
 		return stringRef{scheme: scheme, s: ref}, nil
 	}
+	if scheme, ref, err := ParseBittorrentRefWithScheme(rawRef); err == nil {
+		return stringRef{scheme: scheme, s: ref}, nil
+	}
 	if c, err := cid.Decode(rawRef); err == nil {
 		return c, nil
 	}
@@ -69,6 +73,19 @@ func ParseIPFSRefWithScheme(name string) (scheme, ref string, err error) {
 		return name[:4], name[7:], nil
 	}
 	return "", "", fmt.Errorf("reference is not an IPFS reference")
+}
+
+func ParseBittorrentRefWithScheme(name string) (scheme, ref string, err error) {
+	if strings.HasPrefix(name, "magnet:") {
+		parsed, err := magneturi.Parse(name)
+		if err != nil {
+			//TODO: pushing an image shouldn't work like this
+			return name[:6], name[7:], nil
+		}
+		split := strings.Split(parsed.ExactTopics[0], ":")[2]
+		return "magnet", split, nil
+	}
+	return "", "", fmt.Errorf("reference is not a magnet reference")
 }
 
 type stringRef struct {

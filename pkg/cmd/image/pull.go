@@ -29,6 +29,7 @@ import (
 	"github.com/containerd/nerdctl/v2/pkg/ipfs"
 	"github.com/containerd/nerdctl/v2/pkg/referenceutil"
 	"github.com/containerd/nerdctl/v2/pkg/signutil"
+	"github.com/containerd/nerdctl/v2/pkg/torrent"
 )
 
 // Pull pulls an image specified by `rawRef`.
@@ -64,6 +65,14 @@ func EnsureImage(ctx context.Context, client *containerd.Client, rawRef string, 
 		}
 
 		ensured, err = ipfs.EnsureImage(ctx, client, scheme, ref, ipfsPath, options)
+		if err != nil {
+			return nil, err
+		}
+		return ensured, nil
+	}
+
+	if scheme, ref, err := referenceutil.ParseBittorrentRefWithScheme(rawRef); err == nil {
+		ensured, err = torrent.EnsureImage(ctx, client, scheme, ref, options)
 		if err != nil {
 			return nil, err
 		}

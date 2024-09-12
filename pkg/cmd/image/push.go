@@ -47,6 +47,7 @@ import (
 	"github.com/containerd/nerdctl/v2/pkg/imgutil/dockerconfigresolver"
 	"github.com/containerd/nerdctl/v2/pkg/imgutil/push"
 	"github.com/containerd/nerdctl/v2/pkg/ipfs"
+	"github.com/containerd/nerdctl/v2/pkg/torrent"
 	"github.com/containerd/nerdctl/v2/pkg/platformutil"
 	"github.com/containerd/nerdctl/v2/pkg/referenceutil"
 	"github.com/containerd/nerdctl/v2/pkg/signutil"
@@ -81,6 +82,19 @@ func Push(ctx context.Context, client *containerd.Client, rawRef string, options
 		c, err := ipfs.Push(ctx, client, ref, layerConvert, options.AllPlatforms, options.Platforms, options.IpfsEnsureImage, ipfsPath)
 		if err != nil {
 			log.G(ctx).WithError(err).Warnf("ipfs push failed")
+			return err
+		}
+		fmt.Fprintln(options.Stdout, c)
+		return nil
+	}
+
+	if _, ref, err := referenceutil.ParseBittorrentRefWithScheme(rawRef); err == nil {
+		log.G(ctx).Infof("adding image %q to bittorrent", ref)
+		
+		var layerConvert converter.ConvertFunc
+		c, err := torrent.Push(ctx, client, ref, layerConvert, options.AllPlatforms, options.Platforms)
+		if err != nil {
+			log.G(ctx).WithError(err).Warnf("bittorrent push failed")
 			return err
 		}
 		fmt.Fprintln(options.Stdout, c)
