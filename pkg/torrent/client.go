@@ -2,17 +2,17 @@ package torrent
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/url"
 	"os"
 	"time"
 
-	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hekmon/transmissionrpc/v3"
-	"golift.io/starr/debuglog"
 )
 
 func waitForCompletion(torrentId int64) (io.ReadCloser, error) {
+	fmt.Printf("Waiting for completion of torrentId: %v", torrentId)
 	transmissionClient := client()
 	for {
 		torrents, err := transmissionClient.TorrentGet(context.Background(), []string{"percentDone", "files"}, []int64{torrentId})
@@ -56,16 +56,10 @@ func client() *transmissionrpc.Client {
 		panic(err)
 	}
 
-	httpClient := cleanhttp.DefaultPooledClient()
-	httpClient.Transport = debuglog.NewLoggingRoundTripper(debuglog.Config{
-		Redact: []string{endpoint.User.String()},
-	}, httpClient.Transport)
-
-	tbt, err := transmissionrpc.New(endpoint, &transmissionrpc.Config{
-		CustomClient: httpClient,
-	})
+	tbt, err := transmissionrpc.New(endpoint, nil)
 	if err != nil {
 		panic(err)
 	}
+
 	return tbt
 }

@@ -55,7 +55,6 @@ type fetcher struct {
 }
 
 func (f *fetcher) Fetch(ctx context.Context, desc ocispec.Descriptor) (io.ReadCloser, error) {
-	fmt.Printf("Fetching " + desc.Digest.Encoded())
 	magnetLink, err := getMagnetLink(desc)
 	if err != nil {
 		panic(err)

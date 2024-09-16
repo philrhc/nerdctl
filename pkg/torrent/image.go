@@ -3,14 +3,12 @@ package torrent
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/url"
 	"os"
 
 	"github.com/anacrolix/torrent/bencode"
 	"github.com/anacrolix/torrent/metainfo"
-	"github.com/hashicorp/go-cleanhttp"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
@@ -23,14 +21,10 @@ import (
 	"github.com/containerd/nerdctl/v2/pkg/referenceutil"
 
 	"github.com/hekmon/transmissionrpc/v3"
-	"golift.io/starr/debuglog"
 )
-
-const torrentDownloadPath = "TORRENT_PATH"
 
 // EnsureImage pull the specified image from IPFS.
 func EnsureImage(ctx context.Context, client *containerd.Client, scheme, ref string, options types.ImagePullOptions) (*imgutil.EnsuredImage, error) {
-
 	r, err := NewResolver(scheme)
 	if err != nil {
 		return nil, err
@@ -155,27 +149,10 @@ func serve(filename string) string {
 		panic(err)
 	}
 
-	httpClient := cleanhttp.DefaultPooledClient()
-	httpClient.Transport = debuglog.NewLoggingRoundTripper(debuglog.Config{
-		Redact: []string{endpoint.User.String()},
-	}, httpClient.Transport)
-
-	tbt, err := transmissionrpc.New(endpoint, &transmissionrpc.Config{
-		CustomClient: httpClient,
-	})
+	tbt, err := transmissionrpc.New(endpoint, nil)
 	if err != nil {
 		panic(err)
 	}
-	ok, serverVersion, serverMinimumVersion, err := tbt.RPCVersion(context.Background())
-	if err != nil {
-		panic(err)
-	}
-	if !ok {
-		panic(fmt.Sprintf("Remote transmission RPC version (v%d) is incompatible with the transmission library (v%d): remote needs at least v%d",
-			serverVersion, transmissionrpc.RPCVersion, serverMinimumVersion))
-	}
-	fmt.Printf("Remote transmission RPC version (v%d) is compatible with our transmissionrpc library (v%d)\n",
-		serverVersion, transmissionrpc.RPCVersion)
 
 	torrent_filepath := "/downloads/complete/" + filename + ".torrent"
 	torrentAddPayload := transmissionrpc.TorrentAddPayload{
@@ -186,17 +163,10 @@ func serve(filename string) string {
 		panic(err)
 	}
 
-	fmt.Println(*torrent.ID)
-	fmt.Println(*torrent.Name)
-	fmt.Println(*torrent.HashString)
-
 	addedTorrent, err := tbt.TorrentGet(context.Background(), []string{"magnetLink", "status"}, []int64{*torrent.ID})
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Printf("magnet link: %v. ", *addedTorrent[0].MagnetLink)
-	fmt.Printf("status: %v. ", addedTorrent[0].Status)
 
 	return *addedTorrent[0].MagnetLink
 }

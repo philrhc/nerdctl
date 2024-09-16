@@ -15,7 +15,7 @@
             "args": [
                 "--debug-full",
                 "push",
-                "magnet:python"
+                "magnet:python:3.9.20-bookworm"
             ],
             "console": "integratedTerminal",
         },
@@ -29,7 +29,7 @@
             "args": [
                 "--debug-full",
                 "pull",
-                "magnet:?xt=urn:btih:1181b460c15830f1a5305b4fc608c77f93c3a784&dn=manifest"
+                "magnet:?xt=urn:btih:202325c8aea2e32dc077f40d3212cdd181cf8f3a&dn=manifest"
             ],
             "console": "integratedTerminal",
         }
