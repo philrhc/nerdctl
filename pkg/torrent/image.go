@@ -84,7 +84,7 @@ func Push(ctx context.Context, client *containerd.Client, rawRef string, layerCo
 }
 
 func store(name string, root []byte) string {
-	os.WriteFile("/home/pcummins/projects/docker-transmission/mount/downloads/complete/"+name, root, 0755)
+	os.WriteFile("/var/tmp/docker_transmission_mount/downloads/complete/"+name, root, 0755)
 	magnet := serve(name)
 	return magnet
 }
@@ -107,7 +107,7 @@ func storeBlobHook() converter.ConvertHookFunc {
 			return nil, err
 		}
 
-		err = os.WriteFile("/home/pcummins/projects/docker-transmission/mount/downloads/complete/"+resultDesc.Digest.Encoded(), buffer, 0755)
+		err = os.WriteFile("/var/tmp/docker_transmission_mount/downloads/complete/"+resultDesc.Digest.Encoded(), buffer, 0755)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +121,7 @@ func storeBlobHook() converter.ConvertHookFunc {
 }
 
 func serve(filename string) string {
-	file, err := os.Open("/home/pcummins/projects/docker-transmission/mount/downloads/complete/" + filename)
+	file, err := os.Open("/var/tmp/docker_transmission_mount/downloads/complete/" + filename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func serve(filename string) string {
 	info := metainfo.Info{
 		PieceLength: pieceLength,
 	}
-	err = info.BuildFromFilePath("/home/pcummins/projects/docker-transmission/mount/downloads/complete/" + filename)
+	err = info.BuildFromFilePath("/var/tmp/docker_transmission_mount/downloads/complete/" + filename)
 	if err != nil {
 		panic(err)
 	}
@@ -145,7 +145,7 @@ func serve(filename string) string {
 
 	mmi := bencode.MustMarshal(mi)
 
-	err = os.WriteFile("/home/pcummins/projects/docker-transmission/mount/downloads/complete/"+filename+".torrent", mmi, 0755)
+	err = os.WriteFile("/var/tmp/docker_transmission_mount/downloads/complete/"+filename+".torrent", mmi, 0755)
 	if err != nil {
 		panic(err)
 	}

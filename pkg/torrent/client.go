@@ -28,7 +28,7 @@ func waitForCompletion(torrentId int64) (io.ReadCloser, error) {
 
 		if percentDone == 1 {
 			filename := retrievedTorrent.Files[0].Name
-			return os.Open("/home/pcummins/projects/docker-transmission/mount/downloads/complete/" + filename)
+			return os.Open("/var/tmp/docker_transmission_mount/downloads/complete/" + filename)
 		} else {
 			time.Sleep(1 * time.Second)
 		}

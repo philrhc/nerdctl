@@ -2,6 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "env": {
+                "TORRENT_PATH": "/home/pcummins/projects/docker-transmission/mount/downloads/complete/",
+                "TRANSMISSION_DOWNLOAD_PATH": "/downloads/complete/"
+            },
             "name": "Push",
             "type": "go",
             "request": "launch",
