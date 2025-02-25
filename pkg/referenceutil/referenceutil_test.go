@@ -276,6 +276,18 @@ func TestReferenceUtil(t *testing.T) {
 		"oci-archive:///tmp/build/saved-image.tar": {
 			Error: "image must be loaded from archive before parsing image reference",
 		},
+		"magnet:?xt=urn:btih:402ea061e70ea618a207bfd6ee8fe3cd2bf388ca": {
+			Error:        "",
+			String:       "xt=urn:btih:402ea061e70ea618a207bfd6ee8fe3cd2bf388ca",
+			Suggested:    "magnet-xt=ur-abcde",
+			FamiliarName: "xt=urn:btih:402ea061e70ea618a207bfd6ee8fe3cd2bf388ca",
+			Protocol:     "magnet",
+			Digest:       "",
+			Path:         "xt=urn:btih:402ea061e70ea618a207bfd6ee8fe3cd2bf388ca",
+			Domain:       "",
+			Tag:          "",
+			ExplicitTag:  "",
+		},
 	}
 
 	for k, v := range needles {

@@ -8,3 +8,7 @@ _output
 # vagrant
 /.vagrant
 Vagrantfile
+
+# VS code
+.vscode/
+.torrent.bolt.db

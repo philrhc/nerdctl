@@ -25,6 +25,7 @@ import (
 	containerd "github.com/containerd/containerd/v2/client"
 
 	"github.com/containerd/nerdctl/v2/pkg/api/types"
+	"github.com/containerd/nerdctl/v2/pkg/bittorrent"
 	"github.com/containerd/nerdctl/v2/pkg/imgutil"
 	"github.com/containerd/nerdctl/v2/pkg/ipfs"
 	"github.com/containerd/nerdctl/v2/pkg/referenceutil"
@@ -48,6 +49,14 @@ func EnsureImage(ctx context.Context, client *containerd.Client, rawRef string, 
 	parsedReference, err := referenceutil.Parse(rawRef)
 	if err != nil {
 		return nil, err
+	}
+
+	if parsedReference.Protocol == referenceutil.BitTorrentProtocol {
+		ensured, err = bittorrent.EnsureImage(ctx, client, string(parsedReference.Protocol), rawRef, options)
+		if err != nil {
+			return nil, err
+		}
+		return ensured, nil
 	}
 
 	if parsedReference.Protocol != "" {
