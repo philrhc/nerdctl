@@ -42,6 +42,7 @@ import (
 	estargzconvert "github.com/containerd/stargz-snapshotter/nativeconverter/estargz"
 
 	"github.com/containerd/nerdctl/v2/pkg/api/types"
+	"github.com/containerd/nerdctl/v2/pkg/bittorrent"
 	"github.com/containerd/nerdctl/v2/pkg/errutil"
 	"github.com/containerd/nerdctl/v2/pkg/imgutil/dockerconfigresolver"
 	"github.com/containerd/nerdctl/v2/pkg/imgutil/push"
@@ -59,10 +60,20 @@ func Push(ctx context.Context, client *containerd.Client, rawRef string, options
 		return err
 	}
 
-	if parsedReference.Protocol != "" {
-		if parsedReference.Protocol != referenceutil.IPFSProtocol {
-			return fmt.Errorf("ipfs scheme is only supported but got %q", parsedReference.Protocol)
+	if parsedReference.Protocol == referenceutil.BitTorrentProtocol {
+		log.G(ctx).Infof("seeding image %q with BitTorrent", parsedReference)
+
+		var layerConvert converter.ConvertFunc
+		magnet, err := bittorrent.Push(ctx, client, parsedReference.String(), layerConvert, options.AllPlatforms, options.Platforms)
+		if err != nil {
+			log.G(ctx).WithError(err).Warnf("magnet push failed")
+			return err
 		}
+		fmt.Fprintln(options.Stdout, magnet)
+		return nil
+	}
+
+	if parsedReference.Protocol == referenceutil.IPFSProtocol {
 		log.G(ctx).Infof("pushing image %q to IPFS", parsedReference)
 
 		// Ensure all the layers are here: https://github.com/containerd/nerdctl/issues/3489

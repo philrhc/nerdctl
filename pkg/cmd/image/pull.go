@@ -59,7 +59,7 @@ func EnsureImage(ctx context.Context, client *containerd.Client, rawRef string, 
 		return ensured, nil
 	}
 
-	if parsedReference.Protocol != "" {
+	if parsedReference.Protocol == referenceutil.IPFSProtocol  {
 		if options.VerifyOptions.Provider != "none" {
 			return nil, errors.New("--verify flag is not supported on IPFS as of now")
 		}

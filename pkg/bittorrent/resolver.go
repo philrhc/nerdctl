@@ -13,16 +13,22 @@ import (
 
 type resolver struct {
 	scheme string
+	client *Client
 }
 
-func NewResolver(scheme string) (remotes.Resolver, error) {
+func newResolver(scheme string) (remotes.Resolver, error) {
+	client, error := newClient()
+	if error != nil {
+		return nil, error
+	}
 	return &resolver{
 		scheme: scheme,
+		client: client,
 	}, nil
 }
 
 func (r *resolver) Resolve(ctx context.Context, magnetLink string) (name string, desc ocispec.Descriptor, err error) {
-	rc, err := get(magnetLink)
+	rc, err := r.client.get(magnetLink)
 	if err != nil {
 		return "", ocispec.Descriptor{}, err
 	}
@@ -50,7 +56,7 @@ func (f *fetcher) Fetch(ctx context.Context, desc ocispec.Descriptor) (io.ReadCl
 	if err != nil {
 		return nil, err
 	}
-	return get(magnetLink)
+	return f.r.client.get(magnetLink)
 }
 
 func getMagnetLink(desc ocispec.Descriptor) (string, error) {

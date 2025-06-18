@@ -101,11 +101,13 @@ func Parse(rawRef string) (*ImageReference, error) {
 	} else if strings.HasPrefix(rawRef, "ipns://") {
 		ir.Protocol = IPNSProtocol
 		rawRef = rawRef[7:]
-	} else if strings.HasPrefix(rawRef, "magnet:?") {
+	} else if strings.HasPrefix(rawRef, "magnet:") {
 		ir.Protocol = BitTorrentProtocol
-		rawRef = rawRef[8:]
+		rawRef = rawRef[7:]
 		ir.Path = rawRef
-		return ir, nil
+		if strings.HasPrefix(rawRef, "?xt=urn:btih:") {
+			return ir, nil
+		}
 	} else if strings.HasPrefix(rawRef, "oci-archive://") {
 		// The image must be loaded from the specified archive path first
 		// before parsing the image reference specified in its OCI image manifest.
