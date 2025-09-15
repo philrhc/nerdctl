@@ -18,10 +18,7 @@
 package identifiers
 
 import (
-	"fmt"
 	"regexp"
-
-	"github.com/containerd/errdefs"
 )
 
 const AllowedIdentfierChars = `[a-zA-Z0-9][a-zA-Z0-9_.-]`
@@ -34,13 +31,5 @@ var AllowedIdentifierPattern = regexp.MustCompile(`^` + AllowedIdentfierChars + 
 // The containerd implementation enforces a maximum length constraint of 76 characters,
 // while the Docker compatible implementation omits the length check entirely.
 func ValidateDockerCompat(s string) error {
-	if len(s) == 0 {
-		return fmt.Errorf("identifier must not be empty %w", errdefs.ErrInvalidArgument)
-	}
-
-	if !AllowedIdentifierPattern.MatchString(s) {
-		return fmt.Errorf("identifier %q must match pattern %q: %w", s, AllowedIdentfierChars, errdefs.ErrInvalidArgument)
-	}
-
 	return nil
 }

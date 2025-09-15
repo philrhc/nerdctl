@@ -46,13 +46,8 @@ func Push(ctx context.Context, client *containerd.Client, ref string, layerConve
 		return "", err
 	}
 
-	c, err := newClient()
-	if err != nil {
-		return "", err
-	}
-
 	desc, err := converter.IndexConvertFuncWithHook(layerConvert, true, platformMC, converter.ConvertHooks{
-		PostConvertHook: pushBlobHook(c),
+		PostConvertHook: pushBlobHook(),
 	})(ctx, client.ContentStore(), img.Target)
 	if err != nil {
 		return "", err
@@ -62,10 +57,10 @@ func Push(ctx context.Context, client *containerd.Client, ref string, layerConve
 	if err != nil {
 		return "", err
 	}
-	return c.seed(bytes.NewReader(root))
+	return seed(bytes.NewReader(root), ref)
 }
 
-func pushBlobHook(client *Client) converter.ConvertHookFunc {
+func pushBlobHook() converter.ConvertHookFunc {
 	return func(ctx context.Context, cs content.Store, desc ocispec.Descriptor, newDesc *ocispec.Descriptor) (*ocispec.Descriptor, error) {
 		resultDesc := newDesc
 		if resultDesc == nil {
@@ -76,7 +71,7 @@ func pushBlobHook(client *Client) converter.ConvertHookFunc {
 		if err != nil {
 			return nil, err
 		}
-		magnetLink, err := client.seed(content.NewReader(ra))
+		magnetLink, err := seed(content.NewReader(ra), resultDesc.Digest.Encoded())
 		if err != nil {
 			return nil, err
 		}

@@ -6,54 +6,31 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-
-	"github.com/anacrolix/torrent"
 )
 
-type Client struct {
-	Client *torrent.Client
-}
-
-func newClientConfig() *torrent.ClientConfig {
-	cfg := torrent.NewDefaultClientConfig()
-	cfg.ListenPort = 0
-	cfg.NoDHT = true
-	cfg.DisablePEX = true
-	cfg.NoDefaultPortForwarding = true
-	cfg.Seed = true
-	cfg.Debug = true
-	cfg.AcceptPeerConnections = true
-	cfg.AlwaysWantConns = true
-	cfg.DisableTrackers = true
-	cfg.LocalServiceDiscovery = true
-	return cfg
-}
-
-func newClient() (*Client, error) {
-	clientConfig := newClientConfig()
-	client, err := torrent.NewClient(clientConfig)
+func get(magnet string) (io.ReadCloser, error) {
+	req, err := http.NewRequest("GET", "http://localhost:8080/data?magnet="+magnet, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &Client{Client: client}, nil
-}
-
-func (c Client) get(magnet string) (io.ReadCloser, error) {
-	t, err := c.Client.AddMagnet(magnet)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	<-t.GotInfo()
-	r := t.Files()[0].NewReader()
-	return r, nil
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to download; status code: %v", resp.StatusCode)
+	}
+
+	return resp.Body, nil
 }
 
-func (c Client) seed(r io.Reader) (string, error) {
+func seed(r io.Reader, identifier string) (string, error) {
 	pr, pw := io.Pipe()
 	mw := multipart.NewWriter(pw)
 	contentType := mw.FormDataContentType()
 	go func() {
-		fw, err := mw.CreateFormFile("file", "file")
+		fw, err := mw.CreateFormFile("file", identifier)
 		if err != nil {
 			pw.CloseWithError(err)
 			return
